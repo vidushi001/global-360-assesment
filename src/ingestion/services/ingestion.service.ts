@@ -6,12 +6,14 @@ import {
   VehicleTypeDto,
 } from '../dto/ingestion-result.dto';
 import {VehicleRepository} from '../../vehicle/vehicle.repository'
+import { PinoLogger } from 'nestjs-pino';
 
 @Injectable()
 export class IngestionService {
     constructor(private readonly NhtsaService: NhtsaService,
               private readonly TransformationService: TransformationService,
               private readonly VehicleRepository: VehicleRepository,
+              private readonly logger: PinoLogger
               
         ) {}
 
@@ -55,6 +57,7 @@ export class IngestionService {
     }
 
     await this.VehicleRepository.saveVehicles(allVehicle)
+    this.logger.info('Vehicle ingestion completed');
     return allVehicle;
   }
 

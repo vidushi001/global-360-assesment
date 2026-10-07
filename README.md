@@ -1,103 +1,355 @@
-<<<<<<< HEAD
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Vehicle Data Service
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A NestJS-based vehicle data service that fetches vehicle makes and vehicle types from the NHTSA API, transforms XML responses, stores the data in MongoDB, and exposes it through GraphQL.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Tech Stack
 
-## Description
+* NestJS
+* TypeScript
+* MongoDB
+* Mongoose
+* GraphQL
+* NHTSA vPIC API
+* fast-xml-parser
+* Pino
+* Docker
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Architecture
 
-## Project setup
+```text
+                    ┌──────────────────────┐
+                    │      GraphQL Client  │
+                    └──────────┬───────────┘
+                               │
+                               ▼
+                    ┌──────────────────────┐
+                    │   Vehicle Resolver   │
+                    └──────────┬───────────┘
+                               │
+                               ▼
+                    ┌──────────────────────┐
+                    │   Vehicle Service    │
+                    └──────────┬───────────┘
+                               │
+                               ▼
+                    ┌──────────────────────┐
+                    │ Vehicle Repository   │
+                    └──────────┬───────────┘
+                               │
+                               ▼
+                    ┌──────────────────────┐
+                    │       MongoDB        │
+                    └──────────────────────┘
 
-```bash
-$ npm install
+
+        NHTSA API
+            │
+            ▼
+    ┌───────────────────┐
+    │ Ingestion Service │
+    └─────────┬─────────┘
+              │
+              ▼
+    ┌───────────────────┐
+    │   XML Parser      │
+    └─────────┬─────────┘
+              │
+              ▼
+    ┌───────────────────┐
+    │ Vehicle Transformer│
+    └─────────┬─────────┘
+              │
+              ▼
+           MongoDB
 ```
 
-## Compile and run the project
+## Data Flow
 
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+```text
+NHTSA API
+   ↓
+XML Response
+   ↓
+XML Parser
+   ↓
+Transformation
+   ↓
+MongoDB
+   ↓
+GraphQL
+   ↓
+Client
 ```
 
-## Run tests
+## GraphQL
 
-```bash
-# unit tests
-$ npm run test
+GraphQL endpoint:
 
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+```text
+http://localhost:3000/graphql
 ```
 
-## Deployment
+### Get all vehicles
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+```graphql
+query {
+  getAllVehicles {
+    makeId
+    makeName
+    vehicleTypes {
+      typeId
+      typeName
+    }
+  }
+}
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### Get vehicle by makeId
 
-## Resources
+```graphql
+query {
+  getVehicleByMakeId(makeId: 440) {
+    makeId
+    makeName
+    vehicleTypes {
+      typeId
+      typeName
+    }
+  }
+}
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+### Filter vehicles
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+The API can also accept optional filters such as `makeId`, `makeName`, and `typeName`.
 
-## Support
+```graphql
+query {
+  getVehicle(
+    makeId: 440
+    makeName: "Acura"
+    typeName: "Car"
+  ) {
+    makeId
+    makeName
+    vehicleTypes {
+      typeId
+      typeName
+    }
+  }
+}
+```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## MongoDB Model
 
-## Stay in touch
+The `Vehicle` collection contains:
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+```text
+Vehicle
+├── makeId
+├── makeName
+├── vehicleTypes[]
+│   ├── typeId
+│   └── typeName
+├── createdAt
+└── updatedAt
+```
 
-## License
+Example document:
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
-=======
-# global-360-assesment
-NestJS-based Vehicle Data Service using MongoDB, GraphQL, and NHTSA APIs with XML data ingestion and centralized error handling.
->>>>>>> 87202fb42e13ff3041a242fe0cad1b0f11b3e9af
+```json
+{
+  "makeId": 440,
+  "makeName": "Acura",
+  "vehicleTypes": [
+    {
+      "typeId": 1,
+      "typeName": "Car"
+    }
+  ]
+}
+```
+
+`makeId` is configured as a unique field to prevent duplicate vehicle makes.
+
+## Configuration
+
+Create a `.env` file:
+
+```env
+PORT=3000
+
+MONGODB_URI=mongodb://localhost:27017/vehicle-service
+
+NHTSA_MAKES_URL=https://vpic.nhtsa.dot.gov/api/vehicles/getallmakes?format=XML
+
+NHTSA_VEHICLE_TYPES_URL=https://vpic.nhtsa.dot.gov/api/vehicles/GetVehicleTypesForMakeId
+
+LOG_LEVEL=info
+
+NODE_ENV=development
+```
+
+The application reads configuration from environment variables instead of hardcoding environment-specific values.
+
+## Error Handling
+
+The application uses centralized error handling through a global NestJS exception filter.
+
+The following errors are handled:
+
+* NHTSA API errors
+* XML parsing errors
+* Data transformation errors
+* MongoDB/database errors
+* Unexpected application errors
+
+Example error response:
+
+```json
+{
+  "statusCode": 500,
+  "message": "Internal server error",
+  "timestamp": "2026-10-07T12:00:00.000Z"
+}
+```
+
+Expected external API failures are converted into appropriate HTTP exceptions such as:
+
+```text
+BadRequestException
+BadGatewayException
+InternalServerErrorException
+NotFoundException
+```
+
+## Logging
+
+The application uses **Pino** for structured logging.
+
+Logging is implemented for:
+
+* Application startup
+* Ingestion start and completion
+* API calls
+* Number of records processed
+* Database operations
+* Application errors
+
+Example:
+
+```text
+INFO  Vehicle ingestion started
+INFO  Vehicles fetched successfully
+INFO  Vehicle ingestion completed
+ERROR NHTSA API call failed
+```
+
+## Docker
+
+Build the application:
+
+```bash
+docker build -t vehicle-data-service .
+```
+
+Run:
+
+```bash
+docker run -p 3000:3000 vehicle-data-service
+```
+
+For local MongoDB from inside Docker:
+
+```text
+mongodb://host.docker.internal:27017/vehicle-service
+```
+
+## Installation
+
+```bash
+npm install
+```
+
+## Run the Application
+
+Development:
+
+```bash
+npm run start:dev
+```
+
+Production:
+
+```bash
+npm run build
+npm run start:prod
+```
+
+## Project Structure
+
+vehicle-data-service/
+│
+├── src/
+│   │
+│   ├── main.ts
+│   ├── app.module.ts
+│   │
+│   ├── config/
+│   │   ├── configuration.ts
+│   │   └── env.validation.ts
+│   │
+│   ├── common/
+│   │   ├── filter/
+│   │   │   └── global-exception.filter.ts
+│   │   
+│   │
+│   ├── ingestion/
+│   │   ├── ingestion.module.ts
+│   │   │
+│   │   ├── controllers/
+│   │   │   └── ingestion.controller.ts
+│   │   │
+│   │   ├── services/
+│   │   │   ├── ingestion.service.ts
+│   │   │   ├── nhtsa.service.ts
+│   │   │   ├── xml-parser.service.ts
+│   │   │   └── transformation.service.ts
+│   │   │
+│   │   ├── interfaces/
+│   │   │   └── vehicle-data.interface.ts
+│   │   │
+│   │   └── dto/
+│   │       └── ingestion-result.dto.ts
+│   │
+│   ├── vehicles/
+│   │   ├── vehicles.module.ts
+│   │   │
+│   │   ├── schemas/
+│   │   │   └── vehicle.schema.ts
+│   │   │
+│   │   ├──  vehicle.repository.ts
+│   │   │
+│   │   ├──  vehicle.service.ts
+│   │
+│   └── graphql/
+│       ├── graphql.module.ts
+│       │
+│       ├── resolvers/
+│       │   └── vehicle.resolver.ts
+│       │
+│       └── types/
+│           └── vehicle.type.ts
+│
+├── .env
+├── .gitignore
+├── Dockerfile
+├── docker-compose.yml
+├── package.json
+├── tsconfig.json
+├── nest-cli.json
+├── README.md
+│
+└── .github/
+    └── workflows/
+        └── ci.yml

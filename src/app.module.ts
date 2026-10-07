@@ -10,6 +10,7 @@ import configuration from './config/configuration'
 import { MongooseModule } from '@nestjs/mongoose';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { LoggerModule } from 'nestjs-pino';
 
 @Module({
   imports: [
@@ -28,6 +29,17 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
       driver: ApolloDriver,
       autoSchemaFile: true,
        path: '/api/graphql'
+    }),
+     LoggerModule.forRoot({
+      pinoHttp: {
+        level: process.env.LOG_LEVEL || 'info',
+        transport: {
+          target: 'pino-pretty',
+          options: {
+            singleLine: true,
+          },
+        },
+      },
     }),
     VehicleModule, 
     IngestionModule, 

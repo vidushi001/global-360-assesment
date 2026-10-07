@@ -1,14 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable,BadGatewayException } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { ConfigService } from '@nestjs/config';
 import { XmlParserService } from './xml-parser.service'
-
+import { PinoLogger } from 'nestjs-pino';
 @Injectable()
 export class NhtsaService {
     constructor(private readonly httpService: HttpService,
           private readonly configService: ConfigService,
-          private readonly XmlParserService: XmlParserService  
+          private readonly XmlParserService: XmlParserService,
+          private readonly logger: PinoLogger  
     ) {}
 
         async getVehicleData() {
@@ -26,7 +27,8 @@ export class NhtsaService {
                 return jsonData;
                 
             } catch (error) {
-                throw error;
+                this.logger.error({ error },'NHTSA API call failed');
+                throw new BadGatewayException('NHTSA API call failed');
             }
         }
 
@@ -47,8 +49,8 @@ export class NhtsaService {
             );
             return this.XmlParserService.convertXMLToJson(response?.data);
             } catch (error) {
-                return []
-            // throw Error(`Failed to fetch vehicle types for make ${makeId}`)
+                this.logger.error({ error },'NHTSA API vehicle types call failed');
+                throw new BadGatewayException(`Failed to fetch vehicle types for make ${makeId}`);
             }
         }
     }

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable,InternalServerErrorException } from '@nestjs/common';
 import {
   VehicleMakeDto,
   VehicleTypeDto,
@@ -7,25 +7,37 @@ import {
 @Injectable()
 export class TransformationService {
     transformMakes(AllVehicleMakes: any): VehicleMakeDto[] {
-    const makes = AllVehicleMakes ?? [];
+        try{
+            const makes = AllVehicleMakes ?? [];
 
-    return makes.map((make: any) => ({
-      makeId: Number(make.Make_ID),
-      makeName: make.Make_Name,
-      vehicleTypes: [],
-    }));
+            return makes.map((make: any) => ({
+                makeId: Number(make.Make_ID),
+                makeName: make.Make_Name,
+                vehicleTypes: [],
+            }));
+        } catch (error){
+            throw new InternalServerErrorException(
+                'Vehicle data transformation failed',
+            );
+        }    
   }
 
   transformVehicleTypes(response: any): VehicleTypeDto[] {
-    const types =
-       response?.Response?.Results?.VehicleTypesForMakeIds ?? [];
-       const typesArray = Array.isArray(types)
-    ? types
-    : [types];
-    return typesArray.map((type: any) => ({
-      typeId: Number(type.VehicleTypeId),
-      typeName: type.VehicleTypeName,
-    })) || [];
+    try {
+        const types =
+        response?.Response?.Results?.VehicleTypesForMakeIds ?? [];
+        const typesArray = Array.isArray(types)
+        ? types
+        : [types];
+        return typesArray.map((type: any) => ({
+        typeId: Number(type.VehicleTypeId),
+        typeName: type.VehicleTypeName,
+        })) || [];
+    } catch (error){
+        throw new InternalServerErrorException(
+            'Vehicle data transformation failed',
+        );
+    }
   }
 
 

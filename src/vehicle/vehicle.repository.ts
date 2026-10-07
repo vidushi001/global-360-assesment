@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable,InternalServerErrorException  } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
@@ -31,21 +31,29 @@ export class VehicleRepository {
   }
 
   async findAll(makeId: number | null,makeName: string | null,typeName: string | null): Promise<Vehicle[]> {
-    let query = {}
-    if(makeId){
-        query['makeId']=makeId
-    }
-    if(makeName){
-        query['makeName']=makeName
-    }
-    if(typeName){
-        query['vehicleTypes.typeName']=typeName
-    }
-    console.log("query",query)
-    return this.vehicleModel.find(query).lean().exec();
+    try {
+        let query = {}
+        if(makeId){
+            query['makeId']=makeId
+        }
+        if(makeName){
+            query['makeName']=makeName
+        }
+        if(typeName){
+            query['vehicleTypes.typeName']=typeName
+        }
+        console.log("query",query)
+        return this.vehicleModel.find(query).lean().exec();
+     } catch (error) {
+        throw new InternalServerErrorException('Database operation failed');
+    }   
   }
 
   async findByMakeId(makeId: number): Promise<Vehicle | null> {
+    try {
     return this.vehicleModel.findOne({ makeId }).lean().exec();
+    } catch (error) {
+        throw new InternalServerErrorException('Database operation failed');
+    }
   }
 }
