@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
@@ -96,3 +97,7 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+=======
+# global-360-assesment
+NestJS-based Vehicle Data Service using MongoDB, GraphQL, and NHTSA APIs with XML data ingestion and centralized error handling.
+>>>>>>> 87202fb42e13ff3041a242fe0cad1b0f11b3e9af
