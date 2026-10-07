@@ -1,0 +1,11 @@
+services:
+  app:
+    build: .
+    container_name: vehicle-data-service-1
+    ports:
+        - "3002:3002"
+    environment:
+        MONGODB_URI: mongodb://host.docker.internal:27017/vehicle-service  
+        PORT: 3002
+        NHTSA_MAKES_URL : https://vpic.nhtsa.dot.gov/api/vehicles/getallmakes?format=XML
+        NHTSA_VEHICLE_TYPES_URL : https://vpic.nhtsa.dot.gov/api/vehicles/GetVehicleTypesForMakeId
